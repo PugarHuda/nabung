@@ -5,7 +5,7 @@
 
 import { useState } from "react";
 import type { FlowState, SavingsPosition } from "@/types";
-import { TON, USDT } from "@/config";
+import { DEPOSIT_ASSETS } from "@/config";
 
 const usd = (n: number) => `$${n.toLocaleString("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
@@ -97,7 +97,51 @@ export function RiskNote() {
   );
 }
 
-const ASSETS = [TON, USDT];
+/** Penjelasan 3-langkah di layar awal — bantu juri paham value prop cepat. */
+export function HowItWorks() {
+  const steps = [
+    { i: "💸", t: "Setor token apa pun", d: "TON, USDT, NOT — bebas." },
+    { i: "🔄", t: "Otomatis jadi USDT", d: "Rate terbaik via Omniston (STON.fi)." },
+    { i: "🌱", t: "Tumbuh aman", d: "Ditabung di stable pool, risiko rendah." },
+  ];
+  return (
+    <div className="how">
+      {steps.map((s, i) => (
+        <div className="how-step" key={i}>
+          <span className="how-ico">{s.i}</span>
+          <div>
+            <strong>{s.t}</strong>
+            <p className="muted small">{s.d}</p>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/** Pratinjau "Laporan bulanan Mira" — memamerkan pembeda asisten proaktif + Seedance. */
+export function MiraReportPreview({ position }: { position: SavingsPosition | null }) {
+  if (!position) return null;
+  return (
+    <div className="card report">
+      <div className="row">
+        <span className="ava">🎬</span>
+        <strong>Laporan bulanan</strong>
+        <span className="muted small">dikirim Mira</span>
+      </div>
+      <div className="report-frame">
+        <div className="report-play">▶</div>
+        <div className="report-meta">
+          <p className="report-big">+{usd(position.earnedUsd)}</p>
+          <p className="muted small">bulan ini · {position.apyPercent.toFixed(1)}% APY</p>
+        </div>
+      </div>
+      <p className="muted small">Mira merangkum progres & kirim video ceria tiap awal bulan. 🎉</p>
+    </div>
+  );
+}
+
+const ASSETS = DEPOSIT_ASSETS;
 
 export function DepositSheet({
   defaultAmount,

@@ -50,6 +50,16 @@ export const TON = {
   address: "native",
 };
 
+export const NOT = {
+  symbol: "NOT",
+  decimals: 9,
+  // Notcoin jetton master (mainnet). VERIFIKASI sebelum produksi.
+  address: "EQAvlWFDxGF2lXm67y4yzC17wYKD9A0guwPkMs1gOsM__NOT",
+};
+
+// Token yang bisa disetor (semua diseragamkan ke USDT via Omniston).
+export const DEPOSIT_ASSETS = [TON, USDT, NOT];
+
 // SUMBER YIELD = STABLE POOL (StableSwap). Kurva datar dekat peg => IL minimal.
 // Inilah inti klaim "tabungan aman": kita TIDAK pakai pool volatil sebagai default.
 // Isi alamat pool stable USDT/<stable> dari @ston-fi/api saat runtime (lib/api.ts).

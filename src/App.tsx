@@ -1,7 +1,16 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { TonConnectButton } from "@tonconnect/ui-react";
 import { useSavings } from "@/hooks/useSavings";
-import { BalanceCard, DepositSheet, AssistantTips, RiskNote, GoalCard, FlowBanner } from "@/components";
+import {
+  BalanceCard,
+  DepositSheet,
+  AssistantTips,
+  RiskNote,
+  GoalCard,
+  FlowBanner,
+  HowItWorks,
+  MiraReportPreview,
+} from "@/components";
 import { readMiraPayload } from "@/telegram";
 import { MOCK } from "@/config";
 
@@ -11,6 +20,17 @@ export default function App() {
 
   // Konteks dari Mira (deep-link): mis. buka langsung ke setor / set tujuan.
   const mira = useMemo(() => readMiraPayload(), []);
+
+  // DEMO: bikin saldo "hidup" — bunga bertambah pelan agar terasa nyata saat presentasi.
+  const [tick, setTick] = useState(0);
+  useEffect(() => {
+    if (!MOCK || !position) return;
+    const id = setInterval(() => setTick((t) => t + 1), 1500);
+    return () => clearInterval(id);
+  }, [position]);
+  const shown = position
+    ? { ...position, balanceUsd: position.balanceUsd + tick * 0.01, earnedUsd: position.earnedUsd + tick * 0.01 }
+    : null;
 
   return (
     <div className="app">
@@ -34,11 +54,12 @@ export default function App() {
             Setor token apa pun — kami seragamkan jadi USDT yang stabil dan tabung di tempat
             ber-risiko rendah. Hubungkan wallet untuk mulai.
           </p>
+          <HowItWorks />
           <RiskNote />
         </section>
       ) : (
         <main className="stack">
-          <BalanceCard position={position} />
+          <BalanceCard position={shown} />
 
           <div className="actions">
             <button className="primary" onClick={() => setSheetOpen(true)}>
@@ -49,8 +70,9 @@ export default function App() {
             </button>
           </div>
 
-          <GoalCard position={position} miraGoalUsd={mira?.goalUsd} />
-          <AssistantTips position={position} />
+          <GoalCard position={shown} miraGoalUsd={mira?.goalUsd} />
+          <MiraReportPreview position={shown} />
+          <AssistantTips position={shown} />
           <RiskNote />
         </main>
       )}
