@@ -5,6 +5,7 @@ import { deposit as runDeposit, withdraw as runWithdraw } from "@/lib/savings";
 import { getUsdPrice } from "@/lib/api";
 import type { ConversionQuote, FlowState, SavingsPosition } from "@/types";
 import { haptic } from "@/telegram";
+import { MOCK } from "@/config";
 
 const VALIDITY = 60_000;
 
@@ -34,6 +35,11 @@ export function useSavings() {
 
   const sign = useCallback(
     async (txs: { to: string; value: string; body?: string }[]) => {
+      // MODE DEMO: simulasikan tanda tangan agar UI bisa dipamerkan tanpa tx wallet nyata.
+      if (MOCK) {
+        await new Promise((r) => setTimeout(r, 900));
+        return;
+      }
       await tonConnectUI.sendTransaction({
         validUntil: Math.floor(Date.now() / 1000) + VALIDITY / 1000,
         messages: txs.map((t) => ({ address: t.to, amount: t.value, payload: t.body })),

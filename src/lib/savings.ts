@@ -7,7 +7,7 @@
 
 import { PRODUCT, USDT } from "@/config";
 import type { ConversionQuote, FlowState } from "@/types";
-import { isQuoteStale, quoteToUsdt, slippageWithinLimit } from "./omniston";
+import { buildSwapToUsdtTx, isQuoteStale, quoteToUsdt, slippageWithinLimit } from "./omniston";
 import { buildDepositTx, buildWithdrawTx } from "./ston";
 
 export type SignFn = (txs: { to: string; value: string; body?: string }[]) => Promise<void>;
@@ -49,11 +49,14 @@ export async function deposit(args: DepositArgs): Promise<void> {
       }
     }
 
-    // 3) Konversi (skip kalau sudah USDT)
+    // 3) Konversi token -> USDT via Omniston (swap NYATA, sudah diverifikasi build-nya)
     let usdtUnits = quote.outUnits;
     if (fromSymbol !== USDT.symbol) {
-      onState({ status: "converting", message: "Menyeragamkan ke USDT…" });
-      // Pada integrasi nyata: kirim tx swap Omniston, tunggu konfirmasi.
+      onState({ status: "converting", message: "Menyeragamkan ke USDT (Omniston)…" });
+      const swap = await buildSwapToUsdtTx(wallet, fromSymbol, fromUnits);
+      usdtUnits = swap.outUnits;
+      onState({ status: "awaiting-signature" });
+      await sign(swap.txs); // user tanda tangan di wallet → menerima USDT
       checkpoint = "converted-to-usdt";
     } else {
       usdtUnits = fromUnits;
