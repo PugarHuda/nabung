@@ -1,7 +1,5 @@
 {
-  "url": "https://nabung.example.app",
+  "url": "https://nabung-two.vercel.app",
   "name": "Nabung",
-  "iconUrl": "https://nabung.example.app/icon.png",
-  "termsOfUseUrl": "https://nabung.example.app/terms",
-  "privacyPolicyUrl": "https://nabung.example.app/privacy"
+  "iconUrl": "https://nabung-two.vercel.app/icon.png"
 }
