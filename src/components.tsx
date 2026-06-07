@@ -6,10 +6,11 @@
 import { useState } from "react";
 import type { FlowState, SavingsPosition } from "@/types";
 import { DEPOSIT_ASSETS } from "@/config";
+import { miraStartLink, shareProgressLink, openTelegram } from "@/telegram";
 
 const usd = (n: number) => `$${n.toLocaleString("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
-export function BalanceCard({ position }: { position: SavingsPosition | null }) {
+export function BalanceCard({ position, usdtPeg }: { position: SavingsPosition | null; usdtPeg?: number }) {
   const earned = position?.earnedUsd ?? 0;
   const down = earned < 0; // JUJUR: saldo bisa turun. Jangan sembunyikan.
   return (
@@ -22,7 +23,39 @@ export function BalanceCard({ position }: { position: SavingsPosition | null }) 
         </span>
         <span className="apy">≈ {(position?.apyPercent ?? 0).toFixed(1)}% APY*</span>
       </div>
-      <p className="footnote">*Perkiraan, bisa berubah. Bukan bunga tetap.</p>
+      <p className="footnote">
+        *APY estimasi (target), bisa berubah — bukan bunga tetap.
+        {usdtPeg ? ` USDT peg $${usdtPeg.toFixed(4)} (live STON.fi).` : ""}
+      </p>
+    </div>
+  );
+}
+
+/** Jembatan KELUAR ke Mira: tanya asisten & bagikan progres (deep-link resmi). */
+export function MiraActions({ position }: { position: SavingsPosition | null }) {
+  const ctx = {
+    action: "ask",
+    balanceUsd: Math.round(position?.balanceUsd ?? 0),
+    apy: position?.apyPercent ?? 0,
+  };
+  const askUrl = miraStartLink(ctx);
+  const shareUrl = shareProgressLink(
+    `Aku lagi nabung kripto di Nabung 🐷 — saldo ${usd(position?.balanceUsd ?? 0)} dengan ${(position?.apyPercent ?? 0).toFixed(1)}% APY. Coba juga!`,
+  );
+  return (
+    <div className="card mira-actions">
+      <div className="row">
+        <span className="ava">✨</span>
+        <strong>Bareng Mira</strong>
+      </div>
+      <div className="actions">
+        <button className="ghost" onClick={() => openTelegram(askUrl)}>
+          🤖 Tanya Mira
+        </button>
+        <button className="ghost" onClick={() => openTelegram(shareUrl)}>
+          📣 Bagikan
+        </button>
+      </div>
     </div>
   );
 }

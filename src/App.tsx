@@ -10,8 +10,10 @@ import {
   FlowBanner,
   HowItWorks,
   MiraReportPreview,
+  MiraActions,
 } from "@/components";
 import { readMiraPayload } from "@/telegram";
+import { getUsdtPriceLive } from "@/lib/api";
 import { MOCK } from "@/config";
 
 export default function App() {
@@ -21,6 +23,18 @@ export default function App() {
   // Konteks dari Mira (deep-link): mis. buka langsung ke setor / set tujuan.
   const mira = useMemo(() => readMiraPayload(), []);
 
+  // DATA NYATA dari STON.fi: peg USDT (membuktikan aset tabungan stabil). Live + fallback.
+  const [meta, setMeta] = useState<{ usdtPeg?: number }>({});
+  useEffect(() => {
+    let alive = true;
+    getUsdtPriceLive().then((usdtPeg) => {
+      if (alive) setMeta({ usdtPeg });
+    });
+    return () => {
+      alive = false;
+    };
+  }, []);
+
   // DEMO: bikin saldo "hidup" — bunga bertambah pelan agar terasa nyata saat presentasi.
   const [tick, setTick] = useState(0);
   useEffect(() => {
@@ -29,7 +43,11 @@ export default function App() {
     return () => clearInterval(id);
   }, [position]);
   const shown = position
-    ? { ...position, balanceUsd: position.balanceUsd + tick * 0.01, earnedUsd: position.earnedUsd + tick * 0.01 }
+    ? {
+        ...position,
+        balanceUsd: position.balanceUsd + tick * 0.01,
+        earnedUsd: position.earnedUsd + tick * 0.01,
+      }
     : null;
 
   return (
@@ -45,7 +63,7 @@ export default function App() {
         <TonConnectButton />
       </header>
 
-      {MOCK && <div className="mock-pill">MODE DEMO — data simulasi</div>}
+      {MOCK && <div className="mock-pill">MODE DEMO — saldo simulasi, APY & harga LIVE dari STON.fi</div>}
 
       {!wallet ? (
         <section className="empty">
@@ -59,7 +77,7 @@ export default function App() {
         </section>
       ) : (
         <main className="stack">
-          <BalanceCard position={shown} />
+          <BalanceCard position={shown} usdtPeg={meta.usdtPeg} />
 
           <div className="actions">
             <button className="primary" onClick={() => setSheetOpen(true)}>
@@ -72,6 +90,7 @@ export default function App() {
 
           <GoalCard position={shown} miraGoalUsd={mira?.goalUsd} />
           <MiraReportPreview position={shown} />
+          <MiraActions position={shown} />
           <AssistantTips position={shown} />
           <RiskNote />
         </main>
