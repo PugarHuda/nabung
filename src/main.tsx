@@ -11,7 +11,8 @@ import "./styles.css";
 initTelegram();
 
 const MANIFEST_URL =
-  import.meta.env.VITE_MANIFEST_URL ?? `${window.location.origin}/tonconnect-manifest.json`;
+  import.meta.env.VITE_MANIFEST_URL ??
+  `${window.location.origin}${import.meta.env.BASE_URL}tonconnect-manifest.json`;
 
 // Di mode LIVE, bungkus dengan OmnistonProvider (menyediakan instance ke useRfq/useOmniston).
 // Di mode MOCK, lewati supaya demo tetap jalan tanpa koneksi WebSocket.

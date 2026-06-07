@@ -81,5 +81,21 @@ Sisa pekerjaan live (butuh wallet + mainnet untuk verifikasi end-to-end):
 - **Ekonomi nominal kecil:** minimum setor (`config.ts` `minDepositUsd`).
 - **Bukan bank:** disclaimer risiko eksplisit di UI, tanpa kata "dijamin/insured".
 
+## Deploy
+Telegram Mini App butuh URL **HTTPS publik**. Dua jalur:
+
+**A. GitHub Pages (otomatis, sudah disetel)** — `.github/workflows/deploy.yml` build & deploy
+tiap push ke `main`. Setelah push pertama: buka repo → **Settings → Pages → Source: GitHub
+Actions**. Hasil: `https://<user>.github.io/<repo>/` (base path di-handle otomatis via `VITE_BASE`).
+Demo publik berjalan mode **MOCK**.
+
+**B. Vercel / Cloudflare Pages (URL root, lebih bersih)** — connect repo, framework **Vite**,
+build `npm run build`, output `dist`. Tak perlu set base (default `/`).
+
+Setelah live, untuk menjadikannya Mini App sungguhan:
+1. BotFather → `/newapp` (atau `/setmenubutton`) → tempel URL deploy.
+2. Update `public/tonconnect-manifest.json` `url`+`iconUrl` ke URL deploy (atau set `VITE_MANIFEST_URL`).
+3. Untuk fitur live (bukan MOCK): set `VITE_MOCK=false`, `VITE_NETWORK`, + RPC/API key.
+
 ## Disclaimer
 Bukan nasihat keuangan. Bukan produk berasuransi. Pokok berisiko; yield berfluktuasi.
