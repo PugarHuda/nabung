@@ -1,0 +1,31 @@
+{
+  "name": "nabung",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Nabung — rekening tabungan kripto di Telegram. Setor token apa pun, dapat yield otomatis dari STON.fi, dikelola asisten AI Mira.",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc -b --noEmit"
+  },
+  "dependencies": {
+    "@ston-fi/api": "^0.32.0",
+    "@ston-fi/omniston-sdk-react": "^0.8.3",
+    "@ston-fi/sdk": "^2.7.0",
+    "@ton/core": "^0.63.1",
+    "@ton/crypto": "^3.3.0",
+    "@ton/ton": "^16.3.0",
+    "@tonconnect/ui-react": "^2.4.4",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.4",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.11"
+  }
+}
