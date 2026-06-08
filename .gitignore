@@ -8,3 +8,6 @@ dist-ssr
 .DS_Store
 
 .vercel
+
+# local throwaway scripts (may contain secrets) — never commit
+_*.mjs

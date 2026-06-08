@@ -32,6 +32,7 @@ body {
   text-align: center; font-size: 11px; letter-spacing: .5px; color: #0f1115;
   background: #fbbf24; border-radius: 999px; padding: 4px 10px; margin-bottom: 14px; font-weight: 700;
 }
+.mock-pill.testnet { background: #60a5fa; }
 
 .stack { display: flex; flex-direction: column; gap: 14px; }
 .card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; }

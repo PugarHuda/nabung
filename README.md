@@ -61,6 +61,16 @@ npm run dev
 - [x] Custom **skill + trigger + Seedance** templates (`mira-skills/nabung.md`)
 - [ ] Single-sided LP provide leg + on-chain `readPosition` (needs mainnet + funds to verify)
 
+## Testnet "real-action" mode
+TON testnet has no real DeFi yield (STON.fi has no testnet; Tonstakers testnet data is
+unavailable). So `VITE_NETWORK=testnet` + `VITE_MOCK=false` runs a **real-action mode**:
+deposits/withdrawals are **real on-chain transactions** (real TON Connect signing,
+explorer-visible, self-custodial via an on-chain memo receipt), and **yield is simulated**
+and clearly labeled. The deposit tx is **verified on testnet** (see `src/lib/testnet.ts`).
+```bash
+VITE_MOCK=false VITE_NETWORK=testnet npm run dev   # connect a testnet wallet (Tonkeeper testnet)
+```
+
 ## Testnet vs Mainnet
 STON.fi v2 has a testnet router, but **api.ston.fi is mainnet-only** and stable-pool/Omniston
 liquidity is effectively absent on testnet. So testnet only validates **TON Connect + signing**;

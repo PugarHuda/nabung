@@ -14,7 +14,7 @@ import {
 } from "@/components";
 import { readMiraPayload } from "@/telegram";
 import { getUsdtPriceLive } from "@/lib/api";
-import { MOCK } from "@/config";
+import { MOCK, IS_TESTNET } from "@/config";
 
 export default function App() {
   const { wallet, position, flow, deposit, withdraw, resetFlow } = useSavings();
@@ -64,6 +64,9 @@ export default function App() {
       </header>
 
       {MOCK && <div className="mock-pill">DEMO MODE — simulated balance, LIVE APY & price from STON.fi</div>}
+      {!MOCK && IS_TESTNET && (
+        <div className="mock-pill testnet">TESTNET — deposits/withdrawals are real on-chain txs · yield simulated</div>
+      )}
 
       {!wallet ? (
         <section className="empty">

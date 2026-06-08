@@ -3,11 +3,14 @@ import { useTonAddress, useTonConnectUI } from "@tonconnect/ui-react";
 import { readPosition } from "@/lib/ston";
 import { deposit as runDeposit, withdraw as runWithdraw } from "@/lib/savings";
 import { getUsdPrice } from "@/lib/api";
+import { addDeposit, buildReceiptTx, clearSavings, readTestnetPosition } from "@/lib/testnet";
 import type { ConversionQuote, FlowState, SavingsPosition } from "@/types";
 import { haptic } from "@/telegram";
-import { MOCK } from "@/config";
+import { MOCK, IS_TESTNET } from "@/config";
 
 const VALIDITY = 60_000;
+// Testnet real-action mode: real on-chain tx, self-custodial, simulated yield.
+const TESTNET_REAL = IS_TESTNET && !MOCK;
 
 export function useSavings() {
   const wallet = useTonAddress();
@@ -20,8 +23,13 @@ export function useSavings() {
     if (!wallet) return setPosition(null);
     setLoading(true);
     try {
-      // on-chain = source of truth
-      setPosition(await readPosition(wallet));
+      if (TESTNET_REAL) {
+        const { price } = await getUsdPrice("TON");
+        setPosition(readTestnetPosition(wallet, price || 5.2, Date.now()));
+      } else {
+        // on-chain = source of truth
+        setPosition(await readPosition(wallet));
+      }
     } catch {
       setPosition(null);
     } finally {
@@ -51,6 +59,23 @@ export function useSavings() {
   const deposit = useCallback(
     async (fromSymbol: string, amount: number, decimals: number) => {
       if (!wallet) return;
+
+      // Testnet: a REAL self-custodial on-chain receipt (TON), yield simulated.
+      if (TESTNET_REAL) {
+        try {
+          setFlow({ status: "awaiting-signature", message: "Confirm in your wallet (testnet)…" });
+          await sign(buildReceiptTx(wallet, amount, `Nabung: save ${amount} TON`));
+          addDeposit(wallet, amount, Date.now());
+          haptic("success");
+          setFlow({ status: "done", message: "Saved on testnet (real on-chain receipt)! 🎉" });
+        } catch (e) {
+          haptic("error");
+          setFlow({ status: "error", error: (e as Error).message });
+        }
+        await refresh();
+        return;
+      }
+
       const { price } = await getUsdPrice(fromSymbol);
       await runDeposit({
         wallet,
@@ -74,6 +99,22 @@ export function useSavings() {
 
   const withdraw = useCallback(async () => {
     if (!wallet || !position) return;
+
+    if (TESTNET_REAL) {
+      try {
+        setFlow({ status: "awaiting-signature", message: "Confirm withdrawal in your wallet (testnet)…" });
+        await sign(buildReceiptTx(wallet, 0.05, "Nabung: withdraw"));
+        clearSavings(wallet);
+        haptic("success");
+        setFlow({ status: "done", message: "Withdrawn on testnet (real on-chain receipt)! 🎉" });
+      } catch (e) {
+        haptic("error");
+        setFlow({ status: "error", error: (e as Error).message });
+      }
+      await refresh();
+      return;
+    }
+
     await runWithdraw({ wallet, lpShares: position.lpShares, sign, onState: setFlow });
     await refresh();
   }, [wallet, position, sign, refresh]);
