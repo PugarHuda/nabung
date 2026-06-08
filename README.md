@@ -6,7 +6,11 @@
 
 Built for the **STON.fi Vibe Coding Hackathon – Wave 2** · Tracks: **STON.fi + Mira**.
 
-**Live:** https://nabung-two.vercel.app · **Bot:** [@nabungwoybot](https://t.me/nabungwoybot)
+**Live demo:** https://nabung-two.vercel.app · **Telegram bot:** [@nabungwoybot](https://t.me/nabungwoybot)
+
+**Try it:** open the bot → tap **🐷 Nabung** (runs a simulated‑balance DEMO with **live** STON.fi data).
+Tap the banner to switch to **TESTNET real‑action mode** — deposits/withdrawals become real on‑chain
+testnet transactions (connect a testnet wallet).
 
 ---
 
@@ -52,14 +56,16 @@ npm run dev
   & `VITE_MANIFEST_URL`.
 
 ## Implementation status
-- [x] Savings UI (balance, earned, goal, proactive assistant, honest risk note) — **runs in DEMO mode**
+- [x] Savings UI (balance, earned, goal, proactive assistant, honest risk note) — live as a Telegram Mini App
 - [x] Deposit/withdraw flow with **recovery checkpoint** & slippage/stale-quote checks (`src/lib/savings.ts`)
 - [x] **Omniston quote + swap execution** — VERIFIED on mainnet (`src/lib/omniston.ts`)
 - [x] **@ston-fi/api** live USDT peg in the UI (`src/lib/api.ts`)
-- [x] Stable-pool selection scaffold (`src/lib/api.ts`)
-- [x] **Mira deep-link** bridge in & out + bot menu button (`src/telegram.ts`)
-- [x] Custom **skill + trigger + Seedance** templates (`mira-skills/nabung.md`)
-- [ ] Single-sided LP provide leg + on-chain `readPosition` (needs mainnet + funds to verify)
+- [x] **Mira deep-link** bridge in & out + bot menu button (`src/telegram.ts`) + skill templates (`mira-skills/nabung.md`)
+- [x] **Testnet real-action mode** — deposits/withdrawals are real on-chain testnet txs (self-custodial), VERIFIED on testnet (`src/lib/testnet.ts`); runtime toggle via the in-app banner or `?mode=testnet`
+- [x] Telegram WebView compatibility — node polyfills (Buffer/process/global) + error overlay (fixes the blank-screen crash)
+- [ ] Mainnet single-sided LP provide leg + on-chain `readPosition` (needs a clean mainnet wallet + funds to verify)
+
+See **[SUBMISSION.md](./SUBMISSION.md)** for the hackathon submission write-up.
 
 ## Testnet "real-action" mode
 TON testnet has no real DeFi yield (STON.fi has no testnet; Tonstakers testnet data is
