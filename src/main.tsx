@@ -5,7 +5,7 @@ import { Omniston } from "@ston-fi/omniston-sdk";
 import { OmnistonProvider } from "@ston-fi/omniston-sdk-react";
 import App from "./App";
 import { initTelegram } from "./telegram";
-import { MOCK, OMNISTON_WS } from "./config";
+import { MOCK, IS_TESTNET, OMNISTON_WS } from "./config";
 import "./styles.css";
 
 initTelegram();
@@ -36,7 +36,8 @@ class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { err
 // In LIVE mode, wrap with OmnistonProvider (provides the instance to useRfq/useOmniston).
 // In MOCK mode, skip it so the demo runs without a WebSocket connection.
 function Root() {
-  if (MOCK) return <App />;
+  // MOCK demo and testnet real-action don't use Omniston (mainnet aggregator).
+  if (MOCK || IS_TESTNET) return <App />;
   const omniston = new Omniston({ apiUrl: OMNISTON_WS });
   return (
     <OmnistonProvider omniston={omniston}>

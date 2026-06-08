@@ -5,7 +5,7 @@
 
 import { useState } from "react";
 import type { FlowState, SavingsPosition } from "@/types";
-import { DEPOSIT_ASSETS } from "@/config";
+import { DEPOSIT_ASSETS, IS_TESTNET } from "@/config";
 import { miraStartLink, shareProgressLink, openTelegram } from "@/telegram";
 
 const usd = (n: number) => `$${n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -174,7 +174,8 @@ export function MiraActions({ position }: { position: SavingsPosition | null }) 
   );
 }
 
-const ASSETS = DEPOSIT_ASSETS;
+// Testnet real-action: deposits are real TON self-transfers (receipts), so TON only.
+const ASSETS = IS_TESTNET ? DEPOSIT_ASSETS.filter((a) => a.symbol === "TON") : DEPOSIT_ASSETS;
 
 export function DepositSheet({
   defaultAmount,
@@ -194,7 +195,11 @@ export function DepositSheet({
       <div className="sheet" onClick={(e) => e.stopPropagation()}>
         <div className="sheet-handle" />
         <h2>Add to savings</h2>
-        <p className="muted small">Pay with any token — auto-converted to stable USDT.</p>
+        <p className="muted small">
+          {IS_TESTNET
+            ? "Real testnet TON transaction (self-custodial). Yield is simulated."
+            : "Pay with any token — auto-converted to stable USDT."}
+        </p>
 
         <div className="chips">
           {ASSETS.map((a) => (

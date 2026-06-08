@@ -5,9 +5,28 @@
 // NOTE: verify mainnet addresses before production (don't hardcode blindly — STON.fi's
 // recommended pattern is to resolve the router via the API). See lib/api.ts.
 
+// Mode can be switched at RUNTIME via URL params (so one deploy serves both demo and
+// testnet real-action on the same domain → TON Connect manifest still matches):
+//   ?mode=testnet            → real-action testnet (MOCK=false, NETWORK=testnet)
+//   ?mock=false&network=...  → fine-grained override
+// Falls back to build-time env (VITE_MOCK / VITE_NETWORK), default = MOCK demo on mainnet.
+const _qp = (() => {
+  try {
+    return new URLSearchParams(window.location.search);
+  } catch {
+    return new URLSearchParams();
+  }
+})();
+const _mode = _qp.get("mode");
+const _mockQ = _qp.get("mock");
+const _netQ = _qp.get("network");
+
 // Run with fake data so the UI is demoable without a wallet/SDK.
-// Set VITE_MOCK=false (or remove) to use real integrations.
-export const MOCK = import.meta.env.VITE_MOCK !== "false";
+export const MOCK = (() => {
+  if (_mode === "testnet" || _mockQ === "false") return false;
+  if (_mockQ === "true") return true;
+  return import.meta.env.VITE_MOCK !== "false";
+})();
 
 // Network: "mainnet" | "testnet".
 // IMPORTANT: api.ston.fi is mainnet-only, and stable-pool/Omniston liquidity is
@@ -15,7 +34,9 @@ export const MOCK = import.meta.env.VITE_MOCK !== "false";
 // transaction signing, NOT for demoing yield. For a yield demo use MOCK or mainnet
 // (small amounts). See the README "Testnet vs Mainnet" section.
 export const NETWORK: "mainnet" | "testnet" =
-  (import.meta.env.VITE_NETWORK as "mainnet" | "testnet") ?? "mainnet";
+  _mode === "testnet" || _netQ === "testnet" || import.meta.env.VITE_NETWORK === "testnet"
+    ? "testnet"
+    : "mainnet";
 export const IS_TESTNET = NETWORK === "testnet";
 
 // Omniston endpoint (STON.fi best-rate aggregator) — mainnet.
