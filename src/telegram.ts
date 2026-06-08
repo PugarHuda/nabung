@@ -1,5 +1,5 @@
-// Helper Telegram Mini App + parsing deep-link payload dari Mira.
-// Mira bridge: t.me/<bot>?startapp=<payload>  -> tersedia di initDataUnsafe.start_param
+// Telegram Mini App helpers + parsing the deep-link payload from Mira.
+// Mira bridge: t.me/<bot>?startapp=<payload>  -> available in initDataUnsafe.start_param
 
 interface TelegramWebApp {
   ready: () => void;
@@ -21,7 +21,7 @@ export function initTelegram(): void {
   tg.expand();
 }
 
-/** Konteks yang dibawa dari Mira lewat deep-link (mis. tujuan tabungan). */
+/** Context carried in from Mira via the deep link (e.g. a savings goal). */
 export interface MiraPayload {
   action?: "deposit" | "withdraw" | "goal";
   amountUsd?: number;
@@ -33,7 +33,7 @@ export function readMiraPayload(): MiraPayload | null {
   const raw = tg?.initDataUnsafe?.start_param;
   if (!raw) return null;
   try {
-    // payload di-encode base64url JSON oleh skill Mira (lihat mira-skills/nabung.md)
+    // payload is base64url JSON encoded by the Mira skill (see mira-skills/nabung.md)
     const json = atob(raw.replace(/-/g, "+").replace(/_/g, "/"));
     return JSON.parse(json) as MiraPayload;
   } catch {
@@ -45,17 +45,17 @@ function b64url(obj: object): string {
   return btoa(JSON.stringify(obj)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 
-/** Deep-link KE @mira dengan konteks tabungan (jembatan keluar ke asisten AI). */
+/** Deep link TO @mira with savings context (outbound bridge to the AI assistant). */
 export function miraStartLink(payload: object): string {
   return `https://t.me/mira?start=${b64url(payload)}`;
 }
 
-/** Link share native Telegram untuk membagikan progres tabungan. */
+/** Native Telegram share link to share savings progress. */
 export function shareProgressLink(text: string, url = "https://nabung-two.vercel.app"): string {
   return `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`;
 }
 
-/** Buka t.me link via Telegram bila di dalam Mini App, jika tidak via tab baru. */
+/** Open a t.me link via Telegram when inside the Mini App, otherwise in a new tab. */
 export function openTelegram(url: string): void {
   const tg = getTelegram() as unknown as { openTelegramLink?: (u: string) => void };
   if (tg?.openTelegramLink) tg.openTelegramLink(url);

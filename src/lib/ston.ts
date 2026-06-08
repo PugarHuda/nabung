@@ -1,6 +1,6 @@
-// Single-sided liquidity provision di STON.fi v2 (sumber yield Nabung).
-// Memakai router.getSingleSideProvideLiquidityJettonTxParams (provisionType "Arbitrary",
-// salah satu amount = "0"). Menabung = masuk single-sided USDT ke STABLE pool (IL minimal).
+// Single-sided liquidity provision on STON.fi v2 (Nabung's yield source).
+// Uses router.getSingleSideProvideLiquidityJettonTxParams (provisionType "Arbitrary",
+// one amount = "0"). Saving = single-sided USDT into a STABLE pool (minimal IL).
 
 import { MOCK, TON_API_KEY, TON_RPC, USDT } from "@/config";
 import type { SavingsPosition } from "@/types";
@@ -11,7 +11,7 @@ async function tonClient() {
   return new TonClient({ endpoint: TON_RPC, apiKey: TON_API_KEY || undefined });
 }
 
-/** Parameter transaksi (siap dikirim via TonConnect sendTransaction). */
+/** Transaction params (ready to send via TonConnect sendTransaction). */
 export interface TxParams {
   to: string;
   value: string;
@@ -19,8 +19,8 @@ export interface TxParams {
 }
 
 /**
- * Bangun transaksi single-sided provide liquidity: setor `usdtUnits` USDT
- * ke stable pool. Mengembalikan TxParams untuk ditandatangani wallet.
+ * Build a single-sided provide-liquidity transaction: deposit `usdtUnits` USDT
+ * into the stable pool. Returns TxParams for the wallet to sign.
  */
 export async function buildDepositTx(walletAddress: string, usdtUnits: string): Promise<TxParams[]> {
   if (MOCK) {
@@ -30,15 +30,15 @@ export async function buildDepositTx(walletAddress: string, usdtUnits: string): 
   const pool = await resolveSavingsPool();
   const { DEX } = await import("@ston-fi/sdk");
   const client = await tonClient();
-  // Router dipilih via API/registry pada produksi; di sini contoh v2.
+  // Router is resolved via the API/registry in production; v2 example here.
   const router = client.open((DEX as any).v2.Router.create(pool.address));
 
-  // Single-sided: amount USDT diisi, sisi lain "0", provisionType "Arbitrary".
+  // Single-sided: fill the USDT amount, set the other side to "0", provisionType "Arbitrary".
   const params = await router.getSingleSideProvideLiquidityJettonTxParams({
     userWalletAddress: walletAddress,
     sendTokenAddress: USDT.address,
     sendAmount: usdtUnits,
-    otherTokenAddress: pool.address, // token kedua pool (stable)
+    otherTokenAddress: pool.address, // the pool's second (stable) token
     minLpOut: "1",
     provisionType: "Arbitrary",
   } as any);
@@ -51,7 +51,7 @@ export async function buildDepositTx(walletAddress: string, usdtUnits: string): 
   }));
 }
 
-/** Bangun transaksi penarikan: remove liquidity sebesar `lpShares`. */
+/** Build a withdrawal transaction: remove `lpShares` of liquidity. */
 export async function buildWithdrawTx(walletAddress: string, lpShares: string): Promise<TxParams[]> {
   if (MOCK) {
     return [{ to: "MOCK_ROUTER", value: "150000000", body: "MOCK_WITHDRAW_BODY" }];
@@ -73,13 +73,13 @@ export async function buildWithdrawTx(walletAddress: string, lpShares: string): 
 }
 
 /**
- * Baca posisi tabungan dari ON-CHAIN (sumber kebenaran), lalu sajikan ala bank.
- * Mira memory hanya cache UX — angka resmi selalu dari sini.
+ * Read the savings position from ON-CHAIN (source of truth), then present it bank-style.
+ * Mira memory is only a UX cache — official numbers always come from here.
  */
 export async function readPosition(walletAddress: string): Promise<SavingsPosition> {
   if (MOCK) {
     const principalUsd = 100;
-    const balanceUsd = 103.2; // sudah termasuk bunga simulasi
+    const balanceUsd = 103.2; // includes simulated interest
     return {
       balanceUsd,
       principalUsd,
@@ -90,9 +90,9 @@ export async function readPosition(walletAddress: string): Promise<SavingsPositi
     };
   }
   const pool = await resolveSavingsPool();
-  // Query LP jetton balance user di pool, konversi share -> nilai USD.
+  // Query the user's LP jetton balance in the pool, convert share -> USD value.
   const { price } = await getUsdPrice(USDT.symbol);
   void [walletAddress, pool, price];
-  // TODO: hitung dari LP balance & reserves pool.
-  throw new Error("readPosition live belum di-wire — jalankan dengan VITE_MOCK (default).");
+  // TODO: compute from the LP balance & pool reserves.
+  throw new Error("Live readPosition not wired yet — run with VITE_MOCK (default).");
 }

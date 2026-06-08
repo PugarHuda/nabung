@@ -1,61 +1,32 @@
-// Komponen presentasional Nabung.
-// PRINSIP PEMBEDA dari Inite (dashboard DeFi): TIDAK ada jargon "LP/pool/liquidity"
-// di UI. Bahasa = bank: Saldo, Bunga, Setor, Tarik, Target. Asisten bersifat
-// PROAKTIF (memberi nudge), bukan kotak chat reaktif.
+// Presentational components for Nabung.
+// KEY DIFFERENTIATOR vs Inite (a DeFi dashboard): NO "LP/pool/liquidity" jargon in the
+// UI. Language = a savings bank: Balance, Earned, Deposit, Withdraw, Goal. The assistant
+// is PROACTIVE (gives nudges), not a reactive chat box.
 
 import { useState } from "react";
 import type { FlowState, SavingsPosition } from "@/types";
 import { DEPOSIT_ASSETS } from "@/config";
 import { miraStartLink, shareProgressLink, openTelegram } from "@/telegram";
 
-const usd = (n: number) => `$${n.toLocaleString("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+const usd = (n: number) => `$${n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
 export function BalanceCard({ position, usdtPeg }: { position: SavingsPosition | null; usdtPeg?: number }) {
   const earned = position?.earnedUsd ?? 0;
-  const down = earned < 0; // JUJUR: saldo bisa turun. Jangan sembunyikan.
+  const down = earned < 0; // HONEST: balance can go down. Don't hide it.
   return (
     <div className="card balance">
-      <p className="label">Saldo Tabungan</p>
+      <p className="label">Savings Balance</p>
       <p className="amount">{usd(position?.balanceUsd ?? 0)}</p>
       <div className="row">
         <span className={`pill ${down ? "neg" : "pos"}`}>
-          {down ? "▼" : "▲"} {usd(Math.abs(earned))} bunga
+          {down ? "▼" : "▲"} {usd(Math.abs(earned))} earned
         </span>
         <span className="apy">≈ {(position?.apyPercent ?? 0).toFixed(1)}% APY*</span>
       </div>
       <p className="footnote">
-        *APY estimasi (target), bisa berubah — bukan bunga tetap.
+        *Estimated APY (target), can change — not a fixed rate.
         {usdtPeg ? ` USDT peg $${usdtPeg.toFixed(4)} (live STON.fi).` : ""}
       </p>
-    </div>
-  );
-}
-
-/** Jembatan KELUAR ke Mira: tanya asisten & bagikan progres (deep-link resmi). */
-export function MiraActions({ position }: { position: SavingsPosition | null }) {
-  const ctx = {
-    action: "ask",
-    balanceUsd: Math.round(position?.balanceUsd ?? 0),
-    apy: position?.apyPercent ?? 0,
-  };
-  const askUrl = miraStartLink(ctx);
-  const shareUrl = shareProgressLink(
-    `Aku lagi nabung kripto di Nabung 🐷 — saldo ${usd(position?.balanceUsd ?? 0)} dengan ${(position?.apyPercent ?? 0).toFixed(1)}% APY. Coba juga!`,
-  );
-  return (
-    <div className="card mira-actions">
-      <div className="row">
-        <span className="ava">✨</span>
-        <strong>Bareng Mira</strong>
-      </div>
-      <div className="actions">
-        <button className="ghost" onClick={() => openTelegram(askUrl)}>
-          🤖 Tanya Mira
-        </button>
-        <button className="ghost" onClick={() => openTelegram(shareUrl)}>
-          📣 Bagikan
-        </button>
-      </div>
     </div>
   );
 }
@@ -67,7 +38,7 @@ export function GoalCard({ position, miraGoalUsd }: { position: SavingsPosition 
   return (
     <div className="card goal">
       <div className="row spread">
-        <p className="label">Target: {usd(goal)}</p>
+        <p className="label">Goal: {usd(goal)}</p>
         <input
           className="goal-input"
           type="number"
@@ -79,28 +50,28 @@ export function GoalCard({ position, miraGoalUsd }: { position: SavingsPosition 
       <div className="bar">
         <div className="fill" style={{ width: `${pct}%` }} />
       </div>
-      <p className="muted small">{pct.toFixed(0)}% menuju target — Mira akan ingatkan tiap minggu.</p>
+      <p className="muted small">{pct.toFixed(0)}% to your goal — Mira will remind you weekly.</p>
     </div>
   );
 }
 
-/** Asisten PROAKTIF: menampilkan nudge ala Mira (bukan chat reaktif). */
+/** PROACTIVE assistant: shows Mira-style nudges (not a reactive chat). */
 export function AssistantTips({ position }: { position: SavingsPosition | null }) {
   const tips: string[] = [];
   if (position) {
-    if (position.earnedUsd > 0) tips.push(`Kerja bagus — tabunganmu sudah menghasilkan ${usd(position.earnedUsd)}. 📈`);
+    if (position.earnedUsd > 0) tips.push(`Nice work — your savings have earned ${usd(position.earnedUsd)}. 📈`);
     if (position.balanceUsd > 0 && position.balanceUsd < 50)
-      tips.push("Tambah sedikit lagi yuk biar bunga makin terasa.");
-    tips.push("Laporan video bulananmu akan dikirim Mira ke chat. 🎬");
+      tips.push("Add a little more so the interest really adds up.");
+    tips.push("Your monthly video report will be sent by Mira in chat. 🎬");
   } else {
-    tips.push("Ada dana nganggur? Tabung sekarang biar tidak diam saja. 💡");
+    tips.push("Got idle funds? Start saving so they don't just sit there. 💡");
   }
   return (
     <div className="card assistant">
       <div className="row">
         <span className="ava">✨</span>
         <strong>Mira</strong>
-        <span className="muted small">asisten tabunganmu</span>
+        <span className="muted small">your savings assistant</span>
       </div>
       <ul className="tips">
         {tips.map((t, i) => (
@@ -116,26 +87,26 @@ export function RiskNote() {
   return (
     <div className="risk">
       <button className="risk-toggle" onClick={() => setOpen((o) => !o)}>
-        ⓘ Ini bukan rekening bank. Pahami risikonya {open ? "▲" : "▼"}
+        ⓘ This is not a bank account. Understand the risks {open ? "▲" : "▼"}
       </button>
       {open && (
         <ul className="muted small">
-          <li>Yield berasal dari <em>stable pool</em> (risiko impermanent loss minimal, tapi tidak nol).</li>
-          <li>Pokok tidak dijamin & tidak berasuransi; nilai bisa turun.</li>
-          <li>Ada risiko smart contract. APY berfluktuasi.</li>
-          <li>Hanya tabung yang kamu siap tahan.</li>
+          <li>Yield comes from a <em>stable pool</em> (minimal impermanent loss, but not zero).</li>
+          <li>Principal is not guaranteed or insured; value can go down.</li>
+          <li>There is smart-contract risk. APY fluctuates.</li>
+          <li>Only save what you can afford to hold.</li>
         </ul>
       )}
     </div>
   );
 }
 
-/** Penjelasan 3-langkah di layar awal — bantu juri paham value prop cepat. */
+/** Step-by-step explainer on the landing screen — helps judges grasp the value prop fast. */
 export function HowItWorks() {
   const steps = [
-    { i: "💸", t: "Setor token apa pun", d: "TON, USDT, NOT — bebas." },
-    { i: "🔄", t: "Otomatis jadi USDT", d: "Rate terbaik via Omniston (STON.fi)." },
-    { i: "🌱", t: "Tumbuh aman", d: "Ditabung di stable pool, risiko rendah." },
+    { i: "💸", t: "Deposit any token", d: "TON, USDT, NOT — your choice." },
+    { i: "🔄", t: "Auto-converted to USDT", d: "Best rate via Omniston (STON.fi)." },
+    { i: "🌱", t: "Grow safely", d: "Saved in a stable pool, low risk." },
   ];
   return (
     <div className="how">
@@ -152,24 +123,53 @@ export function HowItWorks() {
   );
 }
 
-/** Pratinjau "Laporan bulanan Mira" — memamerkan pembeda asisten proaktif + Seedance. */
+/** "Mira monthly report" preview — showcases the proactive-assistant + Seedance differentiator. */
 export function MiraReportPreview({ position }: { position: SavingsPosition | null }) {
   if (!position) return null;
   return (
     <div className="card report">
       <div className="row">
         <span className="ava">🎬</span>
-        <strong>Laporan bulanan</strong>
-        <span className="muted small">dikirim Mira</span>
+        <strong>Monthly report</strong>
+        <span className="muted small">by Mira</span>
       </div>
       <div className="report-frame">
         <div className="report-play">▶</div>
         <div className="report-meta">
           <p className="report-big">+{usd(position.earnedUsd)}</p>
-          <p className="muted small">bulan ini · {position.apyPercent.toFixed(1)}% APY</p>
+          <p className="muted small">this month · {position.apyPercent.toFixed(1)}% APY</p>
         </div>
       </div>
-      <p className="muted small">Mira merangkum progres & kirim video ceria tiap awal bulan. 🎉</p>
+      <p className="muted small">Mira sums up your progress & sends a fun video at the start of each month. 🎉</p>
+    </div>
+  );
+}
+
+/** OUTBOUND bridge to Mira: ask the assistant & share progress (official deep links). */
+export function MiraActions({ position }: { position: SavingsPosition | null }) {
+  const ctx = {
+    action: "ask",
+    balanceUsd: Math.round(position?.balanceUsd ?? 0),
+    apy: position?.apyPercent ?? 0,
+  };
+  const askUrl = miraStartLink(ctx);
+  const shareUrl = shareProgressLink(
+    `I'm saving crypto with Nabung 🐷 — balance ${usd(position?.balanceUsd ?? 0)} at ${(position?.apyPercent ?? 0).toFixed(1)}% APY. Try it!`,
+  );
+  return (
+    <div className="card mira-actions">
+      <div className="row">
+        <span className="ava">✨</span>
+        <strong>With Mira</strong>
+      </div>
+      <div className="actions">
+        <button className="ghost" onClick={() => openTelegram(askUrl)}>
+          🤖 Ask Mira
+        </button>
+        <button className="ghost" onClick={() => openTelegram(shareUrl)}>
+          📣 Share
+        </button>
+      </div>
     </div>
   );
 }
@@ -193,8 +193,8 @@ export function DepositSheet({
     <div className="sheet-backdrop" onClick={onClose}>
       <div className="sheet" onClick={(e) => e.stopPropagation()}>
         <div className="sheet-handle" />
-        <h2>Setor tabungan</h2>
-        <p className="muted small">Bayar pakai token apa pun — otomatis jadi USDT yang stabil.</p>
+        <h2>Add to savings</h2>
+        <p className="muted small">Pay with any token — auto-converted to stable USDT.</p>
 
         <div className="chips">
           {ASSETS.map((a) => (
@@ -229,7 +229,7 @@ export function DepositSheet({
             }
           }}
         >
-          {busy ? "Memproses…" : `Tabung ${amount} ${asset.symbol}`}
+          {busy ? "Processing…" : `Save ${amount} ${asset.symbol}`}
         </button>
       </div>
     </div>
@@ -238,13 +238,13 @@ export function DepositSheet({
 
 const FLOW_TEXT: Record<FlowState["status"], string> = {
   idle: "",
-  quoting: "Mengecek rate terbaik…",
-  "awaiting-signature": "Konfirmasi di wallet…",
-  converting: "Menyeragamkan ke USDT…",
-  "providing-liquidity": "Menabung…",
-  confirming: "Menunggu konfirmasi jaringan…",
-  done: "Berhasil ditabung! 🎉",
-  error: "Ada kendala",
+  quoting: "Checking the best rate…",
+  "awaiting-signature": "Confirm in your wallet…",
+  converting: "Converting to USDT…",
+  "providing-liquidity": "Saving…",
+  confirming: "Waiting for network confirmation…",
+  done: "Saved successfully! 🎉",
+  error: "Something went wrong",
 };
 
 export function FlowBanner({ flow, onDismiss }: { flow: FlowState; onDismiss: () => void }) {
@@ -257,7 +257,7 @@ export function FlowBanner({ flow, onDismiss }: { flow: FlowState; onDismiss: ()
       {isErr && <span className="muted small">{flow.error}</span>}
       {(isErr || isDone) && (
         <button className="link" onClick={onDismiss}>
-          Tutup
+          Close
         </button>
       )}
     </div>

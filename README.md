@@ -1,101 +1,93 @@
-# 🐷 Nabung — Tabungan Kripto di Telegram
+# 🐷 Nabung — Crypto Savings in Telegram
 
-> Setor token apa pun → kami seragamkan jadi USDT → ditabung otomatis ke tempat ber-yield
-> risiko-rendah di STON.fi → Mira jadi asisten proaktif yang melapor & mengingatkan.
-> **DeFi yield yang terasa seperti aplikasi tabungan.**
+> Deposit any token → we normalize it to USDT → it's auto-saved into a low-risk yield
+> venue on STON.fi → Mira acts as a proactive assistant that reports & reminds.
+> **DeFi yield that feels like a savings app.**
 
-Dibuat untuk **STON.fi Vibe Coding Hackathon – Wave 2** · Track: **STON.fi + Mira**.
+Built for the **STON.fi Vibe Coding Hackathon – Wave 2** · Tracks: **STON.fi + Mira**.
+
+**Live:** https://nabung-two.vercel.app · **Bot:** [@nabungwoybot](https://t.me/nabungwoybot)
 
 ---
 
-## Kenapa ini BUKAN "Inite" (pemenang lalu)
-Inite (Wave 1 Silver) = *dashboard DeFi* dengan chat untuk staking/LP/swap. Nabung sengaja
-dibedakan tajam pada 4 titik — kalau ini tidak menonjol, produk akan terasa seperti Inite:
+## Why this is NOT "Inite" (a previous winner)
+Inite (Wave 1 Silver) was a *DeFi dashboard* with chat for staking/LP/swaps. Nabung is
+deliberately differentiated on 4 points — if these don't stand out, it would feel like Inite:
 
-| Pembeda | Inite | **Nabung** |
+| Differentiator | Inite | **Nabung** |
 |---|---|---|
-| (a) Abstraksi | Dashboard DeFi (user lihat pool/LP) | **Rekening tabungan** — jargon DeFi disembunyikan total |
-| (b) Setoran | Token tertentu | **Token APA PUN masuk** → diseragamkan ke USDT via Omniston |
-| (c) Peran AI | Chat reaktif (kamu tanya) | **Asisten proaktif** — laporan video, trigger, nudge |
-| (d) Yield | LP umum (ada IL) | **Single-sided stable pool** → IL minimal, diposisikan "aman" + jujur soal risiko |
+| (a) Abstraction | DeFi dashboard (user sees pools/LP) | **Savings account** — DeFi jargon fully hidden |
+| (b) Deposits | Specific tokens | **ANY token in** → normalized to USDT via Omniston |
+| (c) AI role | Reactive chat (you ask) | **Proactive assistant** — video reports, triggers, nudges |
+| (d) Yield | Generic LP (has IL) | **Single-sided stable pool** → minimal IL, framed "safe" + honest about risk |
 
 ---
 
-## Arsitektur singkat
+## Architecture
 ```
-Token apa pun ─(Omniston best-rate)→ USDT ─(single-sided)→ STABLE POOL STON.fi → yield
-        ▲                                                              │
-   TON Connect (tanda tangan)                                  on-chain = sumber kebenaran
-        │                                                              ▼
-   Mini App (React/Vite) ◄─ deep-link payload ─ Mira (skill, memory, trigger, Seedance)
+Any token ─(Omniston best-rate)→ USDT ─(single-sided)→ STON.fi STABLE POOL → yield
+       ▲                                                            │
+  TON Connect (signing)                                     on-chain = source of truth
+       │                                                            ▼
+  Mini App (React/Vite) ◄─ deep-link payload ─ Mira (skill, memory, trigger, Seedance)
 ```
 
-## Tumpukan integrasi
-**STON.fi/TON:** `@ston-fi/sdk` (single-sided LP v2), `@ston-fi/omniston-sdk-react` (konversi),
-`@ston-fi/api` (APY/harga/pool), `@tonconnect/ui-react`, `@ton/core`/`@ton/ton`.
-**Mira:** deep-link `startapp`, custom skill (`/nabung`, `/saldo`), trigger proaktif,
-laporan Seedance. Lihat `mira-skills/nabung.md`.
+## Integration stack
+**STON.fi / TON:** `@ston-fi/sdk` (single-sided LP v2), `@ston-fi/omniston-sdk` (conversion,
+**verified live**), `@ston-fi/api` (USDT peg & APY, live in the UI), `@tonconnect/ui-react`,
+`@ton/core`/`@ton/ton`.
+**Mira:** bot menu button, inbound deep-link (parse payload), outbound deep-links (Ask Mira /
+Share), custom skills (`/nabung`, `/saldo`), Seedance monthly report. See `mira-skills/nabung.md`.
 
-## Menjalankan
+## Run
 ```bash
 cd nabung
 npm install
-cp .env.example .env.local   # default VITE_MOCK=true → UI demoable tanpa wallet
+cp .env.example .env.local   # default VITE_MOCK=true → demoable without a wallet
 npm run dev
 ```
-- **Mode DEMO (default):** semua data simulasi → bisa langsung pamer UI & alur.
-- **Mode LIVE:** set `VITE_MOCK=false` + isi RPC/API key + jalankan lewat HTTPS tunnel
-  (ngrok/cloudflared) agar Telegram Mini App & TON Connect berfungsi. Update `url` di
-  `public/tonconnect-manifest.json` & `VITE_MANIFEST_URL`.
+- **DEMO mode (default):** simulated balances, but **LIVE** USDT peg/APY from STON.fi → showable immediately.
+- **LIVE mode:** set `VITE_MOCK=false` + RPC/API key + run over an HTTPS tunnel (ngrok/cloudflared)
+  so the Telegram Mini App & TON Connect work. Update `url` in `public/tonconnect-manifest.json`
+  & `VITE_MANIFEST_URL`.
 
-## Status implementasi
-- [x] UI tabungan (saldo, bunga, target, asisten proaktif, risk note jujur) — **jalan di MODE DEMO**
-- [x] Alur setor/tarik dengan **recovery checkpoint** & cek slippage/quote basi (`src/lib/savings.ts`)
-- [x] Pemilihan **stable pool** (IL rendah) via API (`src/lib/api.ts`)
-- [x] Template **single-sided provide liquidity** v2 (`src/lib/ston.ts`)
-- [x] Bridge **deep-link Mira** + parsing payload (`src/telegram.ts`)
-- [x] Template **custom skill + trigger + Seedance** (`mira-skills/nabung.md`)
-- [x] `OmnistonProvider` ter-wire di `main.tsx` (mode LIVE) — build & typecheck lolos
-- [ ] Wiring Omniston RFQ live + query LP balance on-chain (titik bertanda di `lib/`)
+## Implementation status
+- [x] Savings UI (balance, earned, goal, proactive assistant, honest risk note) — **runs in DEMO mode**
+- [x] Deposit/withdraw flow with **recovery checkpoint** & slippage/stale-quote checks (`src/lib/savings.ts`)
+- [x] **Omniston quote + swap execution** — VERIFIED on mainnet (`src/lib/omniston.ts`)
+- [x] **@ston-fi/api** live USDT peg in the UI (`src/lib/api.ts`)
+- [x] Stable-pool selection scaffold (`src/lib/api.ts`)
+- [x] **Mira deep-link** bridge in & out + bot menu button (`src/telegram.ts`)
+- [x] Custom **skill + trigger + Seedance** templates (`mira-skills/nabung.md`)
+- [ ] Single-sided LP provide leg + on-chain `readPosition` (needs mainnet + funds to verify)
 
-### Peta wiring LIVE (API asli — sudah diverifikasi dari type defs paket)
-Sisa pekerjaan live (butuh wallet + mainnet untuk verifikasi end-to-end):
-1. **Quote** — `useRfq({ inputAsset, outputAsset, amount: { $case: "inputUnits", value }, settlementParams: [{ settlementMethods: [SettlementMethod.SWAP], maxPriceSlippagePips }] })`.
-   `inputAsset`/`outputAsset` bertipe `AssetId` (tagged-union per-chain → pakai varian TON dengan address jetton/`native`).
-   Hook mengembalikan `ObservableQueryResult`; ambil event `$case === "quoteUpdated"` → `quote` (punya `quoteId`, `outputUnits`).
-2. **Build tx** — `useTonBuildSwap({ quoteId, transferSrcAddress, traderDstAddress })` → `TonTransaction { messages: TonMessage[] }`.
-3. **Kirim** — map `messages` ke `tonConnectUI.sendTransaction({ messages })`.
-4. **Lacak** — `useSwapTrack(...)` sampai selesai.
-5. **Saldo on-chain** — baca LP jetton balance user di stable pool via `@ton/ton` + reserves pool (`@ston-fi/api`) → konversi share ke USD (`readPosition` di `src/lib/ston.ts`).
+## Testnet vs Mainnet
+STON.fi v2 has a testnet router, but **api.ston.fi is mainnet-only** and stable-pool/Omniston
+liquidity is effectively absent on testnet. So testnet only validates **TON Connect + signing**;
+**real swap/yield needs mainnet** (small amounts). The demo uses MOCK + live read-only data.
 
-> Karena Omniston berbasis React-hooks + observable, alur live sebaiknya hidup di komponen
-> (mis. `DepositSheet`) memakai `useRfq`/`useTonBuildSwap`, bukan di fungsi `lib/` biasa.
-> Saat ini `lib/omniston.ts` & `lib/ston.ts` menahan branch live di balik `MOCK` dengan TODO bertanda.
-
-## Keputusan QA yang sudah ditegakkan di kode
-- **Impermanent Loss:** default **stable pool + single-sided** (`config.ts` `DEFAULT_RISK="konservatif"`).
-- **Kejujuran saldo:** UI menampilkan bunga **bisa negatif** (turun), tidak dipoles (`components.tsx` `BalanceCard`).
-- **Recovery:** jika konversi sukses tapi add-liquidity gagal, dana berhenti di USDT (aman) + pesan jelas (`savings.ts`).
-- **Slippage/quote basi:** wajib konfirmasi ulang sebelum tanda tangan (`omniston.ts`, `savings.ts`).
-- **Sumber kebenaran:** angka resmi dari on-chain (`ston.ts readPosition`), Mira memory hanya cache UX.
-- **Ekonomi nominal kecil:** minimum setor (`config.ts` `minDepositUsd`).
-- **Bukan bank:** disclaimer risiko eksplisit di UI, tanpa kata "dijamin/insured".
+## QA decisions enforced in the code
+- **Impermanent Loss:** default to **stable pool + single-sided** (`config.ts` `DEFAULT_RISK="conservative"`).
+- **Honest balance:** the UI shows interest **can be negative** (go down), unvarnished (`components.tsx` `BalanceCard`).
+- **Recovery:** if the swap succeeds but providing liquidity fails, funds stop at USDT (safe) + clear message (`savings.ts`).
+- **Slippage/stale quote:** must re-confirm before signing (`omniston.ts`, `savings.ts`).
+- **Source of truth:** official numbers come from on-chain (`ston.ts readPosition`), Mira memory is only a UX cache.
+- **Small-amount economics:** minimum deposit (`config.ts` `minDepositUsd`).
+- **Not a bank:** explicit risk disclaimer in the UI, no "guaranteed/insured" wording.
 
 ## Deploy
-Telegram Mini App butuh URL **HTTPS publik**. Dua jalur:
+A Telegram Mini App needs a **public HTTPS URL**. Two paths:
 
-**A. GitHub Pages (otomatis, sudah disetel)** — `.github/workflows/deploy.yml` build & deploy
-tiap push ke `main`. Setelah push pertama: buka repo → **Settings → Pages → Source: GitHub
-Actions**. Hasil: `https://<user>.github.io/<repo>/` (base path di-handle otomatis via `VITE_BASE`).
-Demo publik berjalan mode **MOCK**.
+**A. Vercel (primary, root URL)** — repo connected; auto-deploys on push. Framework **Vite**,
+build `npm run build`, output `dist`. Live at https://nabung-two.vercel.app.
 
-**B. Vercel / Cloudflare Pages (URL root, lebih bersih)** — connect repo, framework **Vite**,
-build `npm run build`, output `dist`. Tak perlu set base (default `/`).
+**B. GitHub Pages (mirror)** — `.github/workflows/deploy.yml` builds & deploys on push to `main`
+(Settings → Pages → Source: GitHub Actions). Base path handled via `VITE_BASE`.
 
-Setelah live, untuk menjadikannya Mini App sungguhan:
-1. BotFather → `/newapp` (atau `/setmenubutton`) → tempel URL deploy.
-2. Update `public/tonconnect-manifest.json` `url`+`iconUrl` ke URL deploy (atau set `VITE_MANIFEST_URL`).
-3. Untuk fitur live (bukan MOCK): set `VITE_MOCK=false`, `VITE_NETWORK`, + RPC/API key.
+To make it a real Mini App:
+1. BotFather → `/newapp` (or `/setmenubutton`) → paste the deploy URL.
+2. `public/tonconnect-manifest.json` `url`+`iconUrl` already point to the Vercel domain (or set `VITE_MANIFEST_URL`).
+3. For live (non-MOCK): set `VITE_MOCK=false`, `VITE_NETWORK`, + RPC/API key.
 
 ## Disclaimer
-Bukan nasihat keuangan. Bukan produk berasuransi. Pokok berisiko; yield berfluktuasi.
+Not financial advice. Not an insured product. Principal is at risk; yield fluctuates.

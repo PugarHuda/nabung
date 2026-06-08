@@ -14,9 +14,9 @@ const MANIFEST_URL =
   import.meta.env.VITE_MANIFEST_URL ??
   `${window.location.origin}${import.meta.env.BASE_URL}tonconnect-manifest.json`;
 
-// Di mode LIVE, bungkus dengan OmnistonProvider (menyediakan instance ke useRfq/useOmniston).
-// Di mode MOCK, lewati supaya demo tetap jalan tanpa koneksi WebSocket.
-// (Mengimpor modul tidak memicu koneksi; hanya `new Omniston()` yang connect.)
+// In LIVE mode, wrap with OmnistonProvider (provides the instance to useRfq/useOmniston).
+// In MOCK mode, skip it so the demo runs without a WebSocket connection.
+// (Importing the module doesn't open a connection; only `new Omniston()` connects.)
 function Root() {
   if (MOCK) return <App />;
   const omniston = new Omniston({ apiUrl: OMNISTON_WS });

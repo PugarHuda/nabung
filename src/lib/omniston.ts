@@ -1,16 +1,16 @@
-// Konversi "token apa pun -> USDT" via Omniston (agregator best-rate).
-// Pembeda dari Inite: Nabung menerima setoran token APA PUN, lalu menyeragamkannya
-// ke USDT yang stabil sebelum ditabung.
+// Convert "any token -> USDT" via Omniston (best-rate aggregator).
+// Differentiator vs Inite: Nabung accepts deposits in ANY token, then normalizes them
+// to stable USDT before saving.
 //
-// DIVERIFIKASI ke mainnet (wss://omni-ws.ston.fi):
+// VERIFIED against mainnet (wss://omni-ws.ston.fi):
 //   - requestForQuote: 1 TON -> ~1.697 USDT (resolver "Omniston")
-//   - tonBuildSwap   : menghasilkan 1 unsigned message siap tanda tangan (TON Connect)
+//   - tonBuildSwap   : returns 1 unsigned message ready to sign (TON Connect)
 
 import { MOCK, OMNISTON_WS, PRODUCT, USDT, DEPOSIT_ASSETS } from "@/config";
 import type { ConversionQuote } from "@/types";
 import { getUsdPrice } from "./api";
 
-// ---- helper bentuk Omniston ----
+// ---- Omniston shape helpers ----
 function tonAsset(address: string) {
   return address === "native" || !address
     ? { chain: { $case: "ton", value: { kind: { $case: "native", value: {} } } } }
@@ -35,7 +35,7 @@ function buildQuoteReq(fromSymbol: string, fromUnits: string) {
     ],
   };
 }
-/** Omniston mengirim payload BOC dalam HEX; TON Connect butuh base64. */
+/** Omniston returns the BOC payload as HEX; TON Connect needs base64. */
 function hexToBase64(hex: string): string {
   const bytes = new Uint8Array(hex.length / 2);
   for (let i = 0; i < bytes.length; i++) bytes[i] = parseInt(hex.substr(i * 2, 2), 16);
@@ -58,7 +58,7 @@ async function withOmniston<T>(fn: (omni: any) => Promise<T>): Promise<T> {
   }
 }
 
-/** Ambil event `quoteUpdated` pertama dari stream RFQ. */
+/** Take the first `quoteUpdated` event from the RFQ stream. */
 function firstQuote(omni: any, req: unknown): Promise<any> {
   return new Promise((resolve, reject) => {
     const sub = omni.requestForQuote(req).subscribe({
@@ -68,19 +68,19 @@ function firstQuote(omni: any, req: unknown): Promise<any> {
           resolve(e.value);
         } else if (e?.$case === "noQuote") {
           sub.unsubscribe();
-          reject(new Error("Tidak ada rute likuiditas untuk token ini saat ini."));
+          reject(new Error("No liquidity route for this token right now."));
         }
       },
       error: (err: unknown) => reject(err),
     });
     setTimeout(() => {
       sub.unsubscribe();
-      reject(new Error("Quote Omniston timeout — coba lagi."));
+      reject(new Error("Omniston quote timed out — please try again."));
     }, PRODUCT.quoteTtlMs);
   });
 }
 
-/** Quote untuk DITAMPILKAN (rate & estimasi hasil) sebelum user konfirmasi. */
+/** Quote to DISPLAY (rate & estimated output) before the user confirms. */
 export async function quoteToUsdt(
   fromSymbol: string,
   fromUnits: string,
@@ -121,9 +121,9 @@ export interface BuiltTx {
 }
 
 /**
- * Bangun transaksi swap NYATA (token -> USDT) via Omniston: quote -> tonBuildSwap.
- * Mengembalikan unsigned messages (siap TON Connect) + estimasi USDT diterima.
- * DIVERIFIKASI build-nya di mainnet.
+ * Build the REAL swap transaction (token -> USDT) via Omniston: quote -> tonBuildSwap.
+ * Returns unsigned messages (ready for TON Connect) + estimated USDT received.
+ * Build path VERIFIED on mainnet.
  */
 export async function buildSwapToUsdtTx(
   wallet: string,
@@ -146,17 +146,17 @@ export async function buildSwapToUsdtTx(
       value: m.sendAmount,
       body: m.payload ? hexToBase64(m.payload) : undefined,
     }));
-    if (!txs.length) throw new Error("Gagal membangun transaksi swap.");
+    if (!txs.length) throw new Error("Failed to build the swap transaction.");
     return { txs, outUnits: String(quote.outputUnits) };
   });
 }
 
-/** Quote dianggap basi jika melewati TTL — wajib re-fetch sebelum tanda tangan. */
+/** A quote is stale once it passes its TTL — must re-fetch before signing. */
 export function isQuoteStale(q: ConversionQuote): boolean {
   return Date.now() - q.createdAt > PRODUCT.quoteTtlMs;
 }
 
-/** Tolak jika slippage melampaui batas (QA: jangan eksekusi diam-diam). */
+/** Reject if slippage exceeds the limit (QA: never execute silently). */
 export function slippageWithinLimit(q: ConversionQuote): boolean {
   return q.slippageBps <= PRODUCT.maxSlippageBps;
 }

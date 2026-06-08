@@ -20,7 +20,7 @@ export function useSavings() {
     if (!wallet) return setPosition(null);
     setLoading(true);
     try {
-      // on-chain = sumber kebenaran
+      // on-chain = source of truth
       setPosition(await readPosition(wallet));
     } catch {
       setPosition(null);
@@ -35,7 +35,7 @@ export function useSavings() {
 
   const sign = useCallback(
     async (txs: { to: string; value: string; body?: string }[]) => {
-      // MODE DEMO: simulasikan tanda tangan agar UI bisa dipamerkan tanpa tx wallet nyata.
+      // DEMO MODE: simulate signing so the UI can be shown without a real wallet tx.
       if (MOCK) {
         await new Promise((r) => setTimeout(r, 900));
         return;
@@ -65,7 +65,7 @@ export function useSavings() {
           if (s.status === "error") haptic("error");
         },
         confirm: async (_q: ConversionQuote) =>
-          window.confirm("Rate berubah sejak tadi. Lanjut menabung dengan rate terbaru?"),
+          window.confirm("The rate changed since the quote. Continue saving at the latest rate?"),
       });
       await refresh();
     },

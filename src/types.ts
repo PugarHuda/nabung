@@ -1,27 +1,27 @@
-// Tipe domain Nabung. Bahasa di UI = "tabungan/bunga/setor/tarik" (bukan jargon DeFi).
+// Nabung domain types. UI language = "savings/earned/deposit/withdraw" (no DeFi jargon).
 
 export interface TokenAmount {
   symbol: string;
-  /** jumlah dalam satuan terkecil (nano/units) sebagai string */
+  /** amount in the smallest unit (nano/units) as a string */
   units: string;
   decimals: number;
-  /** alamat jetton master, atau "native" untuk TON */
+  /** jetton master address, or "native" for TON */
   address: string;
 }
 
-/** Posisi tabungan user = share LP single-sided di stable pool, disajikan ala bank. */
+/** The user's savings position = single-sided LP share in the stable pool, shown bank-style. */
 export interface SavingsPosition {
-  /** nilai pokok + bunga saat ini, dalam USDT (unit USD) */
+  /** current principal + interest, in USDT (USD units) */
   balanceUsd: number;
-  /** total yang pernah disetor (USD) */
+  /** total ever deposited (USD) */
   principalUsd: number;
-  /** bunga terakumulasi (USD) = balance - principal */
+  /** accrued interest (USD) = balance - principal */
   earnedUsd: number;
-  /** APY realized terkini (persen), dari @ston-fi/api */
+  /** latest realized APY (percent), from @ston-fi/api */
   apyPercent: number;
-  /** share LP on-chain (sumber kebenaran) */
+  /** on-chain LP share (source of truth) */
   lpShares: string;
-  /** kapan terakhir disinkron dari on-chain */
+  /** when it was last synced from on-chain */
   syncedAt: number;
 }
 
@@ -30,7 +30,7 @@ export interface SavingsGoal {
   label: string;
 }
 
-/** Quote konversi token-apa-pun -> USDT via Omniston. */
+/** Conversion quote for any-token -> USDT via Omniston. */
 export interface ConversionQuote {
   fromSymbol: string;
   toSymbol: string;
@@ -38,7 +38,7 @@ export interface ConversionQuote {
   outUnits: string;
   rate: number;
   slippageBps: number;
-  /** kapan quote dibuat (untuk TTL) */
+  /** when the quote was created (for TTL) */
   createdAt: number;
 }
 
@@ -55,8 +55,8 @@ export type FlowStatus =
 export interface FlowState {
   status: FlowStatus;
   message?: string;
-  /** untuk recovery: kalau konversi sukses tapi add-liquidity gagal,
-   *  user tidak boleh kehilangan dana — kita simpan checkpoint. */
+  /** for recovery: if the swap succeeded but providing liquidity failed,
+   *  the user must not lose funds — we keep a checkpoint. */
   checkpoint?: "converted-to-usdt" | "liquidity-added" | null;
   error?: string;
 }

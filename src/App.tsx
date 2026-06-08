@@ -20,10 +20,10 @@ export default function App() {
   const { wallet, position, flow, deposit, withdraw, resetFlow } = useSavings();
   const [sheetOpen, setSheetOpen] = useState(false);
 
-  // Konteks dari Mira (deep-link): mis. buka langsung ke setor / set tujuan.
+  // Context from Mira (deep-link): e.g. open straight to deposit / set a goal.
   const mira = useMemo(() => readMiraPayload(), []);
 
-  // DATA NYATA dari STON.fi: peg USDT (membuktikan aset tabungan stabil). Live + fallback.
+  // REAL data from STON.fi: USDT peg (proves the savings asset is stable). Live + safe fallback.
   const [meta, setMeta] = useState<{ usdtPeg?: number }>({});
   useEffect(() => {
     let alive = true;
@@ -35,7 +35,7 @@ export default function App() {
     };
   }, []);
 
-  // DEMO: bikin saldo "hidup" — bunga bertambah pelan agar terasa nyata saat presentasi.
+  // DEMO: make the balance feel "alive" — interest ticks up slowly during a presentation.
   const [tick, setTick] = useState(0);
   useEffect(() => {
     if (!MOCK || !position) return;
@@ -57,20 +57,20 @@ export default function App() {
           <span className="logo">🐷</span>
           <div>
             <h1>Nabung</h1>
-            <p className="tagline">Tabungan kripto, sesimpel chat.</p>
+            <p className="tagline">Crypto savings, as simple as chat.</p>
           </div>
         </div>
         <TonConnectButton />
       </header>
 
-      {MOCK && <div className="mock-pill">MODE DEMO — saldo simulasi, APY & harga LIVE dari STON.fi</div>}
+      {MOCK && <div className="mock-pill">DEMO MODE — simulated balance, LIVE APY & price from STON.fi</div>}
 
       {!wallet ? (
         <section className="empty">
-          <p className="big">Sisihkan, biarkan tumbuh. 🌱</p>
+          <p className="big">Set aside, let it grow. 🌱</p>
           <p className="muted">
-            Setor token apa pun — kami seragamkan jadi USDT yang stabil dan tabung di tempat
-            ber-risiko rendah. Hubungkan wallet untuk mulai.
+            Deposit any token — we convert it to stable USDT and save it somewhere low-risk.
+            Connect your wallet to start.
           </p>
           <HowItWorks />
           <RiskNote />
@@ -81,10 +81,10 @@ export default function App() {
 
           <div className="actions">
             <button className="primary" onClick={() => setSheetOpen(true)}>
-              ＋ Setor
+              ＋ Deposit
             </button>
             <button className="ghost" disabled={!position} onClick={withdraw}>
-              Tarik
+              Withdraw
             </button>
           </div>
 

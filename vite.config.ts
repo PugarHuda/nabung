@@ -6,8 +6,8 @@ import { fileURLToPath, URL } from "node:url";
 // (ngrok/cloudflared) pointing at this dev server, then set the public
 // URL in public/tonconnect-manifest.json.
 export default defineConfig({
-  // GitHub Pages menyajikan di sub-path /<repo>/. Workflow CI mengeset VITE_BASE.
-  // Untuk Vercel/Cloudflare (root domain) biarkan default "/".
+  // GitHub Pages serves under the sub-path /<repo>/. The CI workflow sets VITE_BASE.
+  // For Vercel/Cloudflare (root domain) leave the default "/".
   base: process.env.VITE_BASE || "/",
   plugins: [react()],
   resolve: {

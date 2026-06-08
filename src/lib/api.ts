@@ -1,11 +1,11 @@
-// Pembungkus @ston-fi/api: harga USD, APY pool, pemilihan pool tabungan.
-// Field DIVERIFIKASI dari API live: aset -> `dexPriceUsd`; pool -> `apy30D/apy7D` + `lpTotalSupplyUsd`.
-// Dipakai untuk menampilkan DATA PASAR NYATA dari STON.fi (peg USDT, APY) di UI.
+// Wrapper around @ston-fi/api: USD price, pool APY, savings-pool selection.
+// Fields VERIFIED from the live API: asset -> `dexPriceUsd`; pool -> `apy30D/apy7D` + `lpTotalSupplyUsd`.
+// Used to show REAL market data from STON.fi (USDT peg, APY) in the UI.
 
 import { MOCK, USDT } from "@/config";
 
-// Pool USDT ber-TVL tinggi (untuk menampilkan APY nyata). Bisa diganti pool stable
-// spesifik untuk produksi. Single call getPool() — ringan (bukan getPools 45k).
+// High-TVL USDT pool (to display a real APY). Swap for a specific stable pool in
+// production. Single getPool() call — lightweight (not getPools' 45k list).
 const DISPLAY_POOL = "EQCGScrZe1xbyWqWDvdI6mzP-GAcAWFv6ZXuaJOuSqemxku4";
 
 export interface PoolInfo {
@@ -27,7 +27,7 @@ async function client(): Promise<Api> {
   return _client;
 }
 
-/** Harga USD token (estimasi setoran). Mock untuk token input agar cepat & stabil. */
+/** USD price of a token (deposit estimate). Mock for input tokens so it's fast & stable. */
 export async function getUsdPrice(symbol: string): Promise<{ price: number; fetchedAt: number }> {
   if (MOCK) {
     const table: Record<string, number> = { TON: 5.2, USDT: 1, NOT: 0.008 };
@@ -42,7 +42,7 @@ export async function getUsdPrice(symbol: string): Promise<{ price: number; fetc
   }
 }
 
-/** Harga USDT NYATA dari STON.fi (untuk menampilkan peg). Selalu coba live + fallback. */
+/** REAL USDT price from STON.fi (to display the peg). Always try live + fallback. */
 export async function getUsdtPriceLive(): Promise<number> {
   try {
     const c = await client();
@@ -53,21 +53,21 @@ export async function getUsdtPriceLive(): Promise<number> {
   }
 }
 
-/** APY NYATA dari pool USDT STON.fi (apy30D). Selalu coba live + fallback ke 6.2%. */
+/** REAL APY from a STON.fi USDT pool (apy30D). Always try live + fallback to 6.2%. */
 export async function getSavingsApyLive(): Promise<number> {
   try {
     const c = await client();
     const p = await c.getPool(DISPLAY_POOL);
     const raw = Number(p.apy30D ?? p.apy7D ?? p.apy1D ?? 0);
     if (!raw) return 6.2;
-    // apy bisa berupa fraksi (0.06) atau persen (6.0) — normalkan ke persen.
+    // apy may be a fraction (0.06) or a percent (6.0) — normalize to percent.
     return raw < 1 ? raw * 100 : raw;
   } catch {
     return 6.2;
   }
 }
 
-/** Pilih pool tabungan (alamat + APY nyata). */
+/** Select the savings pool (address + real APY). */
 export async function resolveSavingsPool(): Promise<PoolInfo> {
   if (MOCK) return { address: DISPLAY_POOL, apyPercent: await getSavingsApyLive(), tvlUsd: 6_400_000, isStable: true };
   const apy = await getSavingsApyLive();
