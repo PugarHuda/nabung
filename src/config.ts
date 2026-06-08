@@ -17,13 +17,34 @@ const _qp = (() => {
     return new URLSearchParams();
   }
 })();
-const _mode = _qp.get("mode");
+// Mode resolution: URL ?mode= wins, else a persisted choice (localStorage) — so an
+// in-app toggle works even when Telegram opens a cached URL without the query string.
+function persistedMode(): string | null {
+  try {
+    return localStorage.getItem("nabung:mode");
+  } catch {
+    return null;
+  }
+}
+const _mode = _qp.get("mode") ?? persistedMode();
 const _mockQ = _qp.get("mock");
 const _netQ = _qp.get("network");
 
+/** In-app mode toggle: persist choice + reload (MOCK/NETWORK are resolved at load). */
+export function setAppMode(mode: "demo" | "testnet"): void {
+  try {
+    localStorage.setItem("nabung:mode", mode);
+  } catch {
+    /* ignore */
+  }
+  location.reload();
+}
+
 // Run with fake data so the UI is demoable without a wallet/SDK.
 export const MOCK = (() => {
-  if (_mode === "testnet" || _mockQ === "false") return false;
+  if (_mode === "testnet") return false;
+  if (_mode === "demo") return true;
+  if (_mockQ === "false") return false;
   if (_mockQ === "true") return true;
   return import.meta.env.VITE_MOCK !== "false";
 })();
