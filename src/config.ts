@@ -26,14 +26,20 @@ function persistedMode(): string | null {
     return null;
   }
 }
-const _mode = _qp.get("mode") ?? persistedMode();
+// A persisted in-app choice WINS over the URL param, so the toggle isn't overridden
+// when Telegram reopens the bot's ?mode=testnet menu-button URL.
+const _mode = persistedMode() ?? _qp.get("mode");
 const _mockQ = _qp.get("mock");
 const _netQ = _qp.get("network");
 
-/** In-app mode toggle: persist choice + reload (MOCK/NETWORK are resolved at load). */
+/** In-app mode toggle: persist choice, strip ?mode from the URL, then reload. */
 export function setAppMode(mode: "demo" | "testnet"): void {
   try {
     localStorage.setItem("nabung:mode", mode);
+    // remove ?mode= so it can't override the persisted choice on reload (keep the hash)
+    const u = new URL(window.location.href);
+    u.searchParams.delete("mode");
+    window.history.replaceState(null, "", u.toString());
   } catch {
     /* ignore */
   }
